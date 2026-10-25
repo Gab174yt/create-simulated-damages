@@ -37,6 +37,10 @@ Block behavior can be extended with data packs using these block tags:
 - `create_simulated_damages:impact_explosives`
 - `create_simulated_damages:explosion_ejectable`
 
+## Configuration
+
+Open **Mods → Create: Simulated Damages → Config** to adjust **Impact damage sensitivity**. The default is **1×**; lower values make impacts less sensitive, while higher values make them more sensitive. The range is **0.25×–4×**. Impact explosions use the same sensitivity setting.
+
 ## Requirements
 
 All of the following are required on both the client and server:
@@ -101,6 +105,10 @@ Les comportements peuvent être étendus avec des packs de données à l'aide de
 - `create_simulated_damages:dislocatable`
 - `create_simulated_damages:impact_explosives`
 - `create_simulated_damages:explosion_ejectable`
+
+## Configuration
+
+Ouvrez **Mods → Create: Simulated Damages → Config** pour régler la **Sensibilité des dégâts de choc**. La valeur par défaut est **1×** ; une valeur plus basse réduit la sensibilité, une valeur plus élevée l'augmente. La plage disponible est de **0,25× à 4×**. Le réglage s'applique aussi aux explosions déclenchées par un choc.
 
 ## Prérequis
 

@@ -43,7 +43,7 @@ public final class PhysicsEvents {
         }
 
         double speed = motion.length();
-        if ((entity.horizontalCollision || entity.verticalCollision) && speed >= 4.0) {
+        if (entity.horizontalCollision || entity.verticalCollision) {
             BlockPos target = collisionTarget(entity, motion);
             DamageEngine.damageEntityImpact(level, target, speed);
         }

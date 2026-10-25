@@ -14,7 +14,7 @@ import org.joml.Vector3d;
 public final class BlockImpactCallback implements BlockSubLevelCollisionCallback {
     public static final BlockImpactCallback INSTANCE = new BlockImpactCallback();
 
-    private static final double MINIMUM_IMPACT_SPEED = 4.0;
+    private static final double BASE_MINIMUM_IMPACT_SPEED = 4.0;
     private static final Map<ServerLevel, FrictionContacts> FRICTION_CONTACTS = new WeakHashMap<>();
 
     private BlockImpactCallback() {
@@ -34,7 +34,7 @@ public final class BlockImpactCallback implements BlockSubLevelCollisionCallback
         }
 
         ServerLevel level = physicsSystem.getLevel();
-        if (speed < MINIMUM_IMPACT_SPEED) {
+        if (speed < DamageEngine.getImpactThreshold(BASE_MINIMUM_IMPACT_SPEED)) {
             if (markFrictionContact(level, hitBlockPos)) {
                 DamageEngine.damageFriction(level, hitBlockPos, speed);
             }

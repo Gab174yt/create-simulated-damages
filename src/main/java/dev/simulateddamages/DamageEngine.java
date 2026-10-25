@@ -22,8 +22,8 @@ public final class DamageEngine {
     public static final TagKey<Block> EXPLOSION_EJECTABLE = TagKey.create(
             Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(SimulatedDamages.MOD_ID, "explosion_ejectable"));
 
-    private static final float IMPACT_EXPLOSION_SPEED = 8.0f;
-    private static final double MINIMUM_IMPACT_SPEED = 4.0;
+    private static final double BASE_IMPACT_EXPLOSION_SPEED = 8.0;
+    private static final double BASE_MINIMUM_IMPACT_SPEED = 4.0;
     private static final double IMPACT_DAMAGE_SCALE = 0.15;
     private static final long IMPACT_COOLDOWN_TICKS = 10;
     private static final String DAMAGE_DATA_NAME = "create_simulated_damages_v2";
@@ -43,7 +43,7 @@ public final class DamageEngine {
             return;
         }
 
-        if (state.is(IMPACT_EXPLOSIVES) && Math.abs(impactSpeed) >= IMPACT_EXPLOSION_SPEED) {
+        if (state.is(IMPACT_EXPLOSIVES) && Math.abs(impactSpeed) >= getImpactThreshold(BASE_IMPACT_EXPLOSION_SPEED)) {
             level.getServer().execute(() -> explodeBlock(level, pos, state, (float) Math.abs(impactSpeed)));
             return;
         }
@@ -62,11 +62,17 @@ public final class DamageEngine {
 
     public static void damageImpact(ServerLevel level, BlockPos position, double impactVelocity) {
         double speed = Math.abs(impactVelocity);
-        if (speed <= MINIMUM_IMPACT_SPEED || !registerImpact(level, position)) {
+        double impactThreshold = getImpactThreshold(BASE_MINIMUM_IMPACT_SPEED);
+        double sensitivity = DamageConfig.getImpactSensitivity();
+        if (speed <= impactThreshold || !registerImpact(level, position)) {
             return;
         }
-        float damage = (float) (Math.pow(speed - MINIMUM_IMPACT_SPEED, 2) * IMPACT_DAMAGE_SCALE);
+        float damage = (float) (Math.pow(speed - impactThreshold, 2) * IMPACT_DAMAGE_SCALE * sensitivity);
         damageBlock(level, position, damage, impactVelocity);
+    }
+
+    public static double getImpactThreshold(double baseThreshold) {
+        return baseThreshold / DamageConfig.getImpactSensitivity();
     }
 
     public static void damageFriction(ServerLevel level, BlockPos position, double speed) {
