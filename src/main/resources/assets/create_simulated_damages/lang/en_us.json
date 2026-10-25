@@ -1,3 +1,7 @@
 {
-  "config.create_simulated_damages.impact_sensitivity": "Impact damage sensitivity"
+  "config.create_simulated_damages.impact_sensitivity": "Impact damage multiplier",
+  "config.create_simulated_damages.impact_speed_threshold": "Impact speed threshold",
+  "config.create_simulated_damages.explosion_speed_threshold": "Impact explosion speed threshold",
+  "config.create_simulated_damages.impact_cooldown_ticks": "Impact cooldown (ticks)",
+  "config.create_simulated_damages.friction_sensitivity": "Friction wear multiplier"
 }

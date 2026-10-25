@@ -1,3 +1,7 @@
 {
-  "config.create_simulated_damages.impact_sensitivity": "Sensibilité des dégâts de choc"
+  "config.create_simulated_damages.impact_sensitivity": "Multiplicateur des dégâts de choc",
+  "config.create_simulated_damages.impact_speed_threshold": "Vitesse minimale d'impact",
+  "config.create_simulated_damages.explosion_speed_threshold": "Vitesse minimale d'explosion au choc",
+  "config.create_simulated_damages.impact_cooldown_ticks": "Délai entre les chocs (ticks)",
+  "config.create_simulated_damages.friction_sensitivity": "Multiplicateur d'usure par frottement"
 }

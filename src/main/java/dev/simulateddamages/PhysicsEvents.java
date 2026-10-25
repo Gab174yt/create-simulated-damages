@@ -48,7 +48,7 @@ public final class PhysicsEvents {
             DamageEngine.damageEntityImpact(level, target, speed);
         }
 
-        if (entity.onGround() && motion.horizontalDistanceSqr() > 0.0025
+        if (entity.onGround() && motion.horizontalDistanceSqr() > 0.0001
                 && Math.floorMod(level.getGameTime(), 10) == Math.floorMod(entity.getId(), 10)) {
             DamageEngine.damageFriction(level, entity.blockPosition().below(), motion.horizontalDistance());
         }

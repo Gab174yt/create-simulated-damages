@@ -3,6 +3,7 @@ package dev.simulateddamages;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
+import dev.ryanhcode.sable.physics.config.block_properties.PhysicsBlockPropertyHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -22,10 +23,8 @@ public final class DamageEngine {
     public static final TagKey<Block> EXPLOSION_EJECTABLE = TagKey.create(
             Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(SimulatedDamages.MOD_ID, "explosion_ejectable"));
 
-    private static final double BASE_IMPACT_EXPLOSION_SPEED = 8.0;
-    private static final double BASE_MINIMUM_IMPACT_SPEED = 4.0;
-    private static final double IMPACT_DAMAGE_SCALE = 0.15;
-    private static final long IMPACT_COOLDOWN_TICKS = 10;
+    private static final double IMPACT_DAMAGE_SCALE = 0.04;
+    private static final double FRICTION_DAMAGE_SCALE = 0.02;
     private static final String DAMAGE_DATA_NAME = "create_simulated_damages_v2";
     private static final Map<ServerLevel, Map<Long, Long>> LAST_IMPACT_TICKS = new WeakHashMap<>();
 
@@ -43,7 +42,8 @@ public final class DamageEngine {
             return;
         }
 
-        if (state.is(IMPACT_EXPLOSIVES) && Math.abs(impactSpeed) >= getImpactThreshold(BASE_IMPACT_EXPLOSION_SPEED)) {
+        if (state.is(IMPACT_EXPLOSIVES)
+                && Math.abs(impactSpeed) >= DamageConfig.getExplosionSpeedThreshold()) {
             level.getServer().execute(() -> explodeBlock(level, pos, state, (float) Math.abs(impactSpeed)));
             return;
         }
@@ -57,29 +57,57 @@ public final class DamageEngine {
     }
 
     public static void damageEntityImpact(ServerLevel level, BlockPos position, double speed) {
-        damageImpact(level, position, speed);
+        damageImpact(level, position, speed, null);
     }
 
-    public static void damageImpact(ServerLevel level, BlockPos position, double impactVelocity) {
+    public static void damageImpact(ServerLevel level, BlockPos position, double impactVelocity,
+                                    BlockPos otherPosition) {
         double speed = Math.abs(impactVelocity);
-        double impactThreshold = getImpactThreshold(BASE_MINIMUM_IMPACT_SPEED);
+        double impactThreshold = DamageConfig.getImpactSpeedThreshold();
         double sensitivity = DamageConfig.getImpactSensitivity();
-        if (speed <= impactThreshold || !registerImpact(level, position)) {
+        if (speed < impactThreshold || !registerImpact(level, position)) {
             return;
         }
-        float damage = (float) (Math.pow(speed - impactThreshold, 2) * IMPACT_DAMAGE_SCALE * sensitivity);
+        double massScale = impactMassScale(level, position, otherPosition);
+        float damage = (float) (Math.pow(speed - impactThreshold, 2)
+                * IMPACT_DAMAGE_SCALE * sensitivity * massScale);
         damageBlock(level, position, damage, impactVelocity);
     }
 
-    public static double getImpactThreshold(double baseThreshold) {
-        return baseThreshold / DamageConfig.getImpactSensitivity();
+    public static void damageFriction(ServerLevel level, BlockPos position, double speed) {
+        damageFriction(level, position, speed, null);
     }
 
-    public static void damageFriction(ServerLevel level, BlockPos position, double speed) {
-        if (speed < 0.05) {
+    public static void damageFriction(ServerLevel level, BlockPos position, double speed,
+                                      BlockPos otherPosition) {
+        if (speed < 0.01 || DamageConfig.getFrictionSensitivity() <= 0) {
             return;
         }
-        damageBlock(level, position, (float) Math.max(0.01, speed * 0.015), 0);
+
+        BlockPos pos = position.immutable();
+        if (!level.isInWorldBounds(pos)) {
+            return;
+        }
+        BlockState state = level.getBlockState(pos);
+        if (state.isAir()) {
+            return;
+        }
+
+        double friction = PhysicsBlockPropertyHelper.getFriction(state);
+        if (otherPosition != null) {
+            BlockState otherState = level.getBlockState(otherPosition);
+            if (!otherState.isAir()) {
+                friction = Math.sqrt(friction * PhysicsBlockPropertyHelper.getFriction(otherState));
+            }
+        }
+        if (!Double.isFinite(friction) || friction <= 0) {
+            return;
+        }
+
+        double massScale = impactMassScale(level, pos, otherPosition);
+        float damage = (float) (speed * FRICTION_DAMAGE_SCALE
+                * DamageConfig.getFrictionSensitivity() * friction * massScale);
+        damageBlock(level, pos, damage, 0);
     }
 
     public static void clearDamage(ServerLevel level, BlockPos position) {
@@ -147,15 +175,36 @@ public final class DamageEngine {
         Map<Long, Long> positionTicks = LAST_IMPACT_TICKS.computeIfAbsent(level, ignored -> new HashMap<>());
         long packedPos = position.asLong();
         Long lastImpact = positionTicks.get(packedPos);
-        if (lastImpact != null && gameTime - lastImpact < IMPACT_COOLDOWN_TICKS) {
+        long cooldown = DamageConfig.IMPACT_COOLDOWN_TICKS.get();
+        if (lastImpact != null && gameTime - lastImpact < cooldown) {
             return false;
         }
 
         positionTicks.put(packedPos, gameTime);
         if (Math.floorMod(gameTime, 200) == 0) {
-            positionTicks.entrySet().removeIf(entry -> gameTime - entry.getValue() >= IMPACT_COOLDOWN_TICKS);
+            positionTicks.entrySet().removeIf(entry -> gameTime - entry.getValue() >= cooldown);
         }
         return true;
+    }
+
+    private static double impactMassScale(ServerLevel level, BlockPos position, BlockPos otherPosition) {
+        double mass = blockMass(level, position);
+        double otherMass = otherPosition == null ? mass : blockMass(level, otherPosition);
+        double effectiveMass = mass * otherMass / (mass + otherMass);
+        return Math.max(0.25, Math.min(4.0, effectiveMass / 0.5));
+    }
+
+    private static double blockMass(ServerLevel level, BlockPos position) {
+        if (!level.isInWorldBounds(position)) {
+            return 1.0;
+        }
+        BlockState state = level.getBlockState(position);
+        if (state.isAir()) {
+            return 1.0;
+        }
+
+        double mass = PhysicsBlockPropertyHelper.getMass(level, position, state);
+        return Double.isFinite(mass) && mass > 0 ? mass : 1.0;
     }
 
     private static int breakerId(BlockPos pos) {

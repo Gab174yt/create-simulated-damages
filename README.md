@@ -24,8 +24,8 @@ Create: Simulated Damages adds progressive, persistent physical damage to blocks
 
 | Effect | What happens |
 | --- | --- |
-| **Impacts** | Collisions above 4 blocks/second progressively crack and break blocks. Repeated impacts on the same block are throttled. |
-| **Friction** | Repeated low-speed contacts wear down blocks over time. |
+| **Impacts** | Collision damage scales with impact speed and Sable block mass. Repeated impacts on the same block are throttled. |
+| **Friction** | Repeated contact wears blocks according to their speed, Sable mass, and Sable friction properties. |
 | **Disintegration** | Tagged blocks break free as falling debris. |
 | **Impact explosions** | Tagged explosive blocks detonate after an impact above 8 blocks/second. TNT is included by default. |
 | **Explosion debris** | Selected blocks are launched as falling blocks instead of being destroyed by an explosion. |
@@ -39,7 +39,7 @@ Block behavior can be extended with data packs using these block tags:
 
 ## Configuration
 
-Open **Mods → Create: Simulated Damages → Config** to adjust **Impact damage sensitivity**. The default is **1×**; lower values make impacts less sensitive, while higher values make them more sensitive. The range is **0.25×–4×**. Impact explosions use the same sensitivity setting.
+Open **Mods → Create: Simulated Damages → Config** to adjust impact damage, the impact and explosion speed thresholds, the impact cooldown, and friction wear. Block mass and Sable friction properties are factored into damage automatically.
 
 ## Requirements
 
@@ -93,8 +93,8 @@ Create: Simulated Damages ajoute des dégâts physiques progressifs et persistan
 
 | Effet | Comportement |
 | --- | --- |
-| **Chocs** | Les collisions dépassant 4 blocs/seconde fissurent progressivement les blocs, puis les brisent. Les chocs répétés sur un même bloc sont limités. |
-| **Frottements** | Les contacts répétés à faible vitesse usent les blocs avec le temps. |
+| **Chocs** | Les dégâts dépendent de la vitesse d'impact et de la masse du bloc selon Sable. Les chocs répétés sur un même bloc sont limités. |
+| **Frottements** | Les contacts répétés usent les blocs selon leur vitesse, leur masse et leurs propriétés de friction Sable. |
 | **Dislocation** | Les blocs marqués se détachent et tombent en débris. |
 | **Explosions au choc** | Les blocs explosifs marqués détonent après un impact dépassant 8 blocs/seconde. Le TNT est inclus par défaut. |
 | **Débris d'explosion** | Certains blocs sont projetés sous forme de blocs tombants au lieu d'être détruits par une explosion. |
@@ -108,7 +108,7 @@ Les comportements peuvent être étendus avec des packs de données à l'aide de
 
 ## Configuration
 
-Ouvrez **Mods → Create: Simulated Damages → Config** pour régler la **Sensibilité des dégâts de choc**. La valeur par défaut est **1×** ; une valeur plus basse réduit la sensibilité, une valeur plus élevée l'augmente. La plage disponible est de **0,25× à 4×**. Le réglage s'applique aussi aux explosions déclenchées par un choc.
+Ouvrez **Mods → Create: Simulated Damages → Config** pour régler les dégâts de choc, les vitesses minimales d'impact et d'explosion, le délai entre les chocs et l'usure par frottement. La masse et les propriétés de friction des blocs définies par Sable sont automatiquement prises en compte.
 
 ## Prérequis
 
