@@ -14,8 +14,7 @@ import org.joml.Vector3d;
 public final class BlockImpactCallback implements BlockSubLevelCollisionCallback {
     public static final BlockImpactCallback INSTANCE = new BlockImpactCallback();
 
-    private static final double MINIMUM_IMPACT_SPEED = 1.5;
-    private static final double IMPACT_DAMAGE_SCALE = 0.12;
+    private static final double MINIMUM_IMPACT_SPEED = 4.0;
     private static final Map<ServerLevel, FrictionContacts> FRICTION_CONTACTS = new WeakHashMap<>();
 
     private BlockImpactCallback() {
@@ -45,10 +44,9 @@ public final class BlockImpactCallback implements BlockSubLevelCollisionCallback
             return CollisionResult.NONE;
         }
 
-        float damage = (float) (speed * speed * IMPACT_DAMAGE_SCALE);
-        DamageEngine.damageBlock(level, hitBlockPos, damage, impactVelocity);
+        DamageEngine.damageImpact(level, hitBlockPos, impactVelocity);
         if (otherHitBlockPos != null) {
-            DamageEngine.damageBlock(level, otherHitBlockPos, damage, impactVelocity);
+            DamageEngine.damageImpact(level, otherHitBlockPos, impactVelocity);
         }
 
         return CollisionResult.NONE;

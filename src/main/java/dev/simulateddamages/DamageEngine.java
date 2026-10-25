@@ -1,5 +1,8 @@
 package dev.simulateddamages;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.WeakHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -19,9 +22,12 @@ public final class DamageEngine {
     public static final TagKey<Block> EXPLOSION_EJECTABLE = TagKey.create(
             Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(SimulatedDamages.MOD_ID, "explosion_ejectable"));
 
-    private static final float IMPACT_EXPLOSION_SPEED = 4.5f;
-    private static final float ENTITY_IMPACT_DAMAGE_SCALE = 0.12f;
-    private static final String DAMAGE_DATA_NAME = "create_simulated_damages";
+    private static final float IMPACT_EXPLOSION_SPEED = 8.0f;
+    private static final double MINIMUM_IMPACT_SPEED = 4.0;
+    private static final double IMPACT_DAMAGE_SCALE = 0.15;
+    private static final long IMPACT_COOLDOWN_TICKS = 10;
+    private static final String DAMAGE_DATA_NAME = "create_simulated_damages_v2";
+    private static final Map<ServerLevel, Map<Long, Long>> LAST_IMPACT_TICKS = new WeakHashMap<>();
 
     private DamageEngine() {
     }
@@ -51,10 +57,16 @@ public final class DamageEngine {
     }
 
     public static void damageEntityImpact(ServerLevel level, BlockPos position, double speed) {
-        if (speed < 1.5) {
+        damageImpact(level, position, speed);
+    }
+
+    public static void damageImpact(ServerLevel level, BlockPos position, double impactVelocity) {
+        double speed = Math.abs(impactVelocity);
+        if (speed <= MINIMUM_IMPACT_SPEED || !registerImpact(level, position)) {
             return;
         }
-        damageBlock(level, position, (float) (speed * speed * ENTITY_IMPACT_DAMAGE_SCALE), speed);
+        float damage = (float) (Math.pow(speed - MINIMUM_IMPACT_SPEED, 2) * IMPACT_DAMAGE_SCALE);
+        damageBlock(level, position, damage, impactVelocity);
     }
 
     public static void damageFriction(ServerLevel level, BlockPos position, double speed) {
@@ -122,6 +134,22 @@ public final class DamageEngine {
 
     private static BlockDamageData getData(ServerLevel level) {
         return level.getDataStorage().computeIfAbsent(BlockDamageData.FACTORY, DAMAGE_DATA_NAME);
+    }
+
+    private static synchronized boolean registerImpact(ServerLevel level, BlockPos position) {
+        long gameTime = level.getGameTime();
+        Map<Long, Long> positionTicks = LAST_IMPACT_TICKS.computeIfAbsent(level, ignored -> new HashMap<>());
+        long packedPos = position.asLong();
+        Long lastImpact = positionTicks.get(packedPos);
+        if (lastImpact != null && gameTime - lastImpact < IMPACT_COOLDOWN_TICKS) {
+            return false;
+        }
+
+        positionTicks.put(packedPos, gameTime);
+        if (Math.floorMod(gameTime, 200) == 0) {
+            positionTicks.entrySet().removeIf(entry -> gameTime - entry.getValue() >= IMPACT_COOLDOWN_TICKS);
+        }
+        return true;
     }
 
     private static int breakerId(BlockPos pos) {

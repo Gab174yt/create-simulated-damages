@@ -24,10 +24,10 @@ Create: Simulated Damages adds progressive, persistent physical damage to blocks
 
 | Effect | What happens |
 | --- | --- |
-| **Impacts** | Strong collisions progressively crack and break blocks. |
+| **Impacts** | Collisions above 4 blocks/second progressively crack and break blocks. Repeated impacts on the same block are throttled. |
 | **Friction** | Repeated low-speed contacts wear down blocks over time. |
 | **Disintegration** | Tagged blocks break free as falling debris. |
-| **Impact explosions** | Tagged explosive blocks detonate after a sufficiently strong impact. TNT is included by default. |
+| **Impact explosions** | Tagged explosive blocks detonate after an impact above 8 blocks/second. TNT is included by default. |
 | **Explosion debris** | Selected blocks are launched as falling blocks instead of being destroyed by an explosion. |
 | **Persistent damage** | Block damage is saved with the world. |
 
@@ -89,10 +89,10 @@ Create: Simulated Damages ajoute des dégâts physiques progressifs et persistan
 
 | Effet | Comportement |
 | --- | --- |
-| **Chocs** | Les collisions violentes fissurent progressivement les blocs, puis les brisent. |
+| **Chocs** | Les collisions dépassant 4 blocs/seconde fissurent progressivement les blocs, puis les brisent. Les chocs répétés sur un même bloc sont limités. |
 | **Frottements** | Les contacts répétés à faible vitesse usent les blocs avec le temps. |
 | **Dislocation** | Les blocs marqués se détachent et tombent en débris. |
-| **Explosions au choc** | Les blocs explosifs marqués détonent après un impact suffisamment violent. Le TNT est inclus par défaut. |
+| **Explosions au choc** | Les blocs explosifs marqués détonent après un impact dépassant 8 blocs/seconde. Le TNT est inclus par défaut. |
 | **Débris d'explosion** | Certains blocs sont projetés sous forme de blocs tombants au lieu d'être détruits par une explosion. |
 | **Dégâts persistants** | Les dégâts des blocs sont sauvegardés avec le monde. |
 
