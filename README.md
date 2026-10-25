@@ -39,7 +39,7 @@ Block behavior can be extended with data packs using these block tags:
 
 ## Configuration
 
-Open **Mods → Create: Simulated Damages → Config** to adjust impact damage, the impact and explosion speed thresholds, the impact cooldown, and friction wear. Block mass and Sable friction properties are factored into damage automatically.
+Open **Mods → Create: Simulated Damages → Config** to adjust impact damage, the impact and explosion speed thresholds, the impact cooldown, and friction wear and minimum speed. Block mass and Sable friction properties are factored into damage automatically; very slow contacts below the friction threshold do not wear blocks.
 
 ## Requirements
 
@@ -108,7 +108,7 @@ Les comportements peuvent être étendus avec des packs de données à l'aide de
 
 ## Configuration
 
-Ouvrez **Mods → Create: Simulated Damages → Config** pour régler les dégâts de choc, les vitesses minimales d'impact et d'explosion, le délai entre les chocs et l'usure par frottement. La masse et les propriétés de friction des blocs définies par Sable sont automatiquement prises en compte.
+Ouvrez **Mods → Create: Simulated Damages → Config** pour régler les dégâts de choc, les vitesses minimales d'impact et d'explosion, le délai entre les chocs, ainsi que l'usure et la vitesse minimale de frottement. La masse et les propriétés de friction des blocs définies par Sable sont automatiquement prises en compte ; les contacts trop lents n'usent pas les blocs.
 
 ## Prérequis
 

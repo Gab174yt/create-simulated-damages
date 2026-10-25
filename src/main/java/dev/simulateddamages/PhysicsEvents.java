@@ -12,6 +12,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 @EventBusSubscriber(modid = SimulatedDamages.MOD_ID)
 public final class PhysicsEvents {
@@ -51,6 +52,13 @@ public final class PhysicsEvents {
         if (entity.onGround() && motion.horizontalDistanceSqr() > 0.0001
                 && Math.floorMod(level.getGameTime(), 10) == Math.floorMod(entity.getId(), 10)) {
             DamageEngine.damageFriction(level, entity.blockPosition().below(), motion.horizontalDistance());
+        }
+    }
+
+    @SubscribeEvent
+    public static void processDeferredMutations(LevelTickEvent.Post event) {
+        if (event.getLevel() instanceof ServerLevel level) {
+            DamageEngine.processDeferredMutations(level);
         }
     }
 

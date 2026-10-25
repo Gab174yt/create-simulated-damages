@@ -3,6 +3,7 @@ package dev.simulateddamages;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import dev.ryanhcode.sable.physics.config.block_properties.PhysicsBlockPropertyHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -27,6 +28,7 @@ public final class DamageEngine {
     private static final double FRICTION_DAMAGE_SCALE = 0.02;
     private static final String DAMAGE_DATA_NAME = "create_simulated_damages_v2";
     private static final Map<ServerLevel, Map<Long, Long>> LAST_IMPACT_TICKS = new WeakHashMap<>();
+    private static final Map<ServerLevel, ConcurrentLinkedQueue<Runnable>> DEFERRED_MUTATIONS = new WeakHashMap<>();
 
     private DamageEngine() {
     }
@@ -44,7 +46,7 @@ public final class DamageEngine {
 
         if (state.is(IMPACT_EXPLOSIVES)
                 && Math.abs(impactSpeed) >= DamageConfig.getExplosionSpeedThreshold()) {
-            level.getServer().execute(() -> explodeBlock(level, pos, state, (float) Math.abs(impactSpeed)));
+            deferMutation(level, () -> explodeBlock(level, pos, state, (float) Math.abs(impactSpeed)));
             return;
         }
 
@@ -53,7 +55,7 @@ public final class DamageEngine {
             return;
         }
 
-        level.getServer().execute(() -> applyDamage(level, pos, state, amount, hardness));
+        deferMutation(level, () -> applyDamage(level, pos, state, amount, hardness));
     }
 
     public static void damageEntityImpact(ServerLevel level, BlockPos position, double speed) {
@@ -80,7 +82,8 @@ public final class DamageEngine {
 
     public static void damageFriction(ServerLevel level, BlockPos position, double speed,
                                       BlockPos otherPosition) {
-        if (speed < 0.01 || DamageConfig.getFrictionSensitivity() <= 0) {
+        double minimumSpeed = DamageConfig.getFrictionSpeedThreshold();
+        if (speed <= minimumSpeed || DamageConfig.getFrictionSensitivity() <= 0) {
             return;
         }
 
@@ -105,9 +108,30 @@ public final class DamageEngine {
         }
 
         double massScale = impactMassScale(level, pos, otherPosition);
-        float damage = (float) (speed * FRICTION_DAMAGE_SCALE
+        float damage = (float) ((speed - minimumSpeed) * FRICTION_DAMAGE_SCALE
                 * DamageConfig.getFrictionSensitivity() * friction * massScale);
         damageBlock(level, pos, damage, 0);
+    }
+
+    static void deferMutation(ServerLevel level, Runnable mutation) {
+        synchronized (DEFERRED_MUTATIONS) {
+            DEFERRED_MUTATIONS.computeIfAbsent(level, ignored -> new ConcurrentLinkedQueue<>()).add(mutation);
+        }
+    }
+
+    static void processDeferredMutations(ServerLevel level) {
+        ConcurrentLinkedQueue<Runnable> mutations;
+        synchronized (DEFERRED_MUTATIONS) {
+            mutations = DEFERRED_MUTATIONS.remove(level);
+        }
+        if (mutations == null) {
+            return;
+        }
+
+        Runnable mutation;
+        while ((mutation = mutations.poll()) != null) {
+            mutation.run();
+        }
     }
 
     public static void clearDamage(ServerLevel level, BlockPos position) {
