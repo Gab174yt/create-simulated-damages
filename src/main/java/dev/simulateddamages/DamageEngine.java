@@ -61,7 +61,7 @@ public final class DamageEngine {
         if (speed < 0.05) {
             return;
         }
-        damageBlock(level, position, (float) Math.max(0.04, speed * 0.08), 0);
+        damageBlock(level, position, (float) Math.max(0.01, speed * 0.015), 0);
     }
 
     public static void clearDamage(ServerLevel level, BlockPos position) {

@@ -1,5 +1,9 @@
 package dev.simulateddamages;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 import dev.ryanhcode.sable.api.physics.callback.BlockSubLevelCollisionCallback;
 import dev.ryanhcode.sable.sublevel.system.SubLevelPhysicsSystem;
 import net.minecraft.core.BlockPos;
@@ -12,6 +16,7 @@ public final class BlockImpactCallback implements BlockSubLevelCollisionCallback
 
     private static final double MINIMUM_IMPACT_SPEED = 1.5;
     private static final double IMPACT_DAMAGE_SCALE = 0.12;
+    private static final Map<ServerLevel, FrictionContacts> FRICTION_CONTACTS = new WeakHashMap<>();
 
     private BlockImpactCallback() {
     }
@@ -20,7 +25,7 @@ public final class BlockImpactCallback implements BlockSubLevelCollisionCallback
     public CollisionResult sable$onCollision(BlockPos hitBlockPos, @Nullable BlockPos otherHitBlockPos,
                                              Vector3d impactPosition, double impactVelocity) {
         double speed = Math.abs(impactVelocity);
-        if (speed < MINIMUM_IMPACT_SPEED) {
+        if (speed < 0.05) {
             return CollisionResult.NONE;
         }
 
@@ -30,6 +35,16 @@ public final class BlockImpactCallback implements BlockSubLevelCollisionCallback
         }
 
         ServerLevel level = physicsSystem.getLevel();
+        if (speed < MINIMUM_IMPACT_SPEED) {
+            if (markFrictionContact(level, hitBlockPos)) {
+                DamageEngine.damageFriction(level, hitBlockPos, speed);
+            }
+            if (otherHitBlockPos != null && markFrictionContact(level, otherHitBlockPos)) {
+                DamageEngine.damageFriction(level, otherHitBlockPos, speed);
+            }
+            return CollisionResult.NONE;
+        }
+
         float damage = (float) (speed * speed * IMPACT_DAMAGE_SCALE);
         DamageEngine.damageBlock(level, hitBlockPos, damage, impactVelocity);
         if (otherHitBlockPos != null) {
@@ -37,5 +52,20 @@ public final class BlockImpactCallback implements BlockSubLevelCollisionCallback
         }
 
         return CollisionResult.NONE;
+    }
+
+    private static synchronized boolean markFrictionContact(ServerLevel level, BlockPos position) {
+        long gameTime = level.getGameTime();
+        FrictionContacts contacts = FRICTION_CONTACTS.computeIfAbsent(level, ignored -> new FrictionContacts());
+        if (contacts.gameTime != gameTime) {
+            contacts.gameTime = gameTime;
+            contacts.positions.clear();
+        }
+        return contacts.positions.add(position.asLong());
+    }
+
+    private static final class FrictionContacts {
+        private long gameTime = Long.MIN_VALUE;
+        private final Set<Long> positions = new HashSet<>();
     }
 }

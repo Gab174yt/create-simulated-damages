@@ -16,7 +16,7 @@ Les trois mods de contenu sont obligatoires et sont déclarés dans les métadon
 
 - Les collisions des constructions physiques de Sable endommagent progressivement les blocs touchés. Les blocs fissurent avant de se disloquer.
 - Les blocs pris en charge par la physique tombent en débris lorsqu'ils sont disloqués.
-- Les entités en mouvement endommagent les blocs lors d'un choc et usent le sol par frottement.
+- Les chocs des entités en mouvement et les contacts répétés à faible vitesse usent les blocs et le sol par frottement.
 - Les blocs du tag `create_simulated_damages:impact_explosives` explosent après un choc suffisamment violent. Le tag contient TNT par défaut et peut être étendu par un pack de données.
 - Les blocs du tag `create_simulated_damages:explosion_ejectable` sont éjectés sous forme de blocs tombants lors d'une explosion au lieu d'être détruits.
 - Le progrès des dégâts est sauvegardé dans les données du monde.
