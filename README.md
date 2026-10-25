@@ -1,61 +1,129 @@
+<div align="center">
+
 # Create: Simulated Damages
 
-[Français](#français)
+**Physics-based block damage for Minecraft.**
 
-A NeoForge mod for Minecraft 1.21.1 that adds progressive, physics-based block damage. It integrates with the physical sub-level collisions provided by Sable and used by Create: Aeronautics.
+Cracks, friction, flying debris, and explosive impacts —<br>
+integrated with the moving structures of Create: Aeronautics.
 
-## Requirements
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-56A64B?style=flat-square&logo=minecraft&logoColor=white)](https://www.minecraft.net/)
+[![NeoForge](https://img.shields.io/badge/NeoForge-21.1.247+-E86F2C?style=flat-square)](https://neoforged.net/)
+[![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://adoptium.net/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-397D54?style=flat-square)](LICENSE)
 
-- Minecraft 1.21.1
-- NeoForge 21.1.247 or newer for Minecraft 1.21.1
-- Create 6.0.10 or newer
-- Create: Aeronautics 1.3.2 or newer
-- Sable 2.0.6 or newer
+**English** · [Français](#français)
 
-All three content mods are required and are declared as dependencies in the mod metadata.
+</div>
+
+## Overview
+
+Create: Simulated Damages adds progressive, persistent physical damage to blocks. It hooks into Sable's sub-level collision callbacks to bring physics damage to the moving contraptions used by Create: Aeronautics.
 
 ## Features
 
-- Sable physics collisions progressively damage blocks. Blocks crack before breaking apart.
-- Blocks supported by the physics system fall as debris when dislodged.
-- Impacts from moving entities and repeated low-speed contacts wear down blocks and floors through friction.
-- Blocks in the `create_simulated_damages:impact_explosives` tag explode after a sufficiently strong impact. TNT is included by default; data packs can add other blocks.
-- Blocks in the `create_simulated_damages:explosion_ejectable` tag are launched as falling blocks during explosions instead of simply being destroyed.
-- Block damage progress is saved with the world.
+| Effect | What happens |
+| --- | --- |
+| **Impacts** | Strong collisions progressively crack and break blocks. |
+| **Friction** | Repeated low-speed contacts wear down blocks over time. |
+| **Disintegration** | Tagged blocks break free as falling debris. |
+| **Impact explosions** | Tagged explosive blocks detonate after a sufficiently strong impact. TNT is included by default. |
+| **Explosion debris** | Selected blocks are launched as falling blocks instead of being destroyed by an explosion. |
+| **Persistent damage** | Block damage is saved with the world. |
 
-## Building
+Block behavior can be extended with data packs using these block tags:
 
-Install JDK 21 and run `gradlew.bat build`. The mod JAR is generated in `build/libs`.
+- `create_simulated_damages:dislocatable`
+- `create_simulated_damages:impact_explosives`
+- `create_simulated_damages:explosion_ejectable`
 
-To launch the development client, run `gradlew.bat runClient`.
+## Requirements
+
+All of the following are required on both the client and server:
+
+- Minecraft **1.21.1**
+- NeoForge **21.1.247 or newer**
+- Create **6.0.10 or newer**
+- Create: Aeronautics **1.3.2 or newer**
+- Sable **2.0.6 or newer**
+
+## Build from source
+
+Install **JDK 21**, then run:
+
+```bat
+gradlew.bat build
+```
+
+The mod JAR is created in `build/libs`. To start the development client, run:
+
+```bat
+gradlew.bat runClient
+```
 
 ---
 
 ## Français
 
-Un mod NeoForge pour Minecraft 1.21.1 qui ajoute des dégâts progressifs liés à la physique. Il s'intègre aux collisions des sous-niveaux physiques de Sable utilisés par Create: Aeronautics.
+<div align="center">
 
-## Prérequis
+**Des dégâts physiques pour les blocs de Minecraft.**
 
-- Minecraft 1.21.1
-- NeoForge 21.1.247 ou supérieur pour Minecraft 1.21.1
-- Create 6.0.10 ou supérieur
-- Create: Aeronautics 1.3.2 ou supérieur
-- Sable 2.0.6 ou supérieur
+Fissures, frottements, débris projetés et explosions au choc —<br>
+en harmonie avec les structures mobiles de Create: Aeronautics.
 
-Les trois mods de contenu sont obligatoires et déclarés comme dépendances dans les métadonnées du mod.
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-56A64B?style=flat-square&logo=minecraft&logoColor=white)](https://www.minecraft.net/)
+[![NeoForge](https://img.shields.io/badge/NeoForge-21.1.247+-E86F2C?style=flat-square)](https://neoforged.net/)
+[![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://adoptium.net/)
+[![Licence : MIT](https://img.shields.io/badge/Licence-MIT-397D54?style=flat-square)](LICENSE)
+
+[English](#create-simulated-damages) · **Français**
+
+</div>
+
+## Présentation
+
+Create: Simulated Damages ajoute des dégâts physiques progressifs et persistants aux blocs. Le mod s'intègre aux callbacks de collision des sous-niveaux de Sable pour appliquer ces dégâts aux constructions mobiles utilisées par Create: Aeronautics.
 
 ## Fonctionnalités
 
-- Les collisions physiques de Sable endommagent progressivement les blocs. Ceux-ci se fissurent avant de se disloquer.
-- Les blocs pris en charge par le système physique tombent en débris lorsqu'ils sont disloqués.
-- Les chocs des entités en mouvement et les contacts répétés à faible vitesse usent les blocs et le sol par frottement.
-- Les blocs du tag `create_simulated_damages:impact_explosives` explosent après un choc suffisamment violent. Le tag contient TNT par défaut ; les packs de données peuvent y ajouter d'autres blocs.
-- Les blocs du tag `create_simulated_damages:explosion_ejectable` sont projetés sous forme de blocs tombants lors d'une explosion, au lieu d'être simplement détruits.
-- La progression des dégâts est sauvegardée avec le monde.
+| Effet | Comportement |
+| --- | --- |
+| **Chocs** | Les collisions violentes fissurent progressivement les blocs, puis les brisent. |
+| **Frottements** | Les contacts répétés à faible vitesse usent les blocs avec le temps. |
+| **Dislocation** | Les blocs marqués se détachent et tombent en débris. |
+| **Explosions au choc** | Les blocs explosifs marqués détonent après un impact suffisamment violent. Le TNT est inclus par défaut. |
+| **Débris d'explosion** | Certains blocs sont projetés sous forme de blocs tombants au lieu d'être détruits par une explosion. |
+| **Dégâts persistants** | Les dégâts des blocs sont sauvegardés avec le monde. |
 
-## Compilation
+Les comportements peuvent être étendus avec des packs de données à l'aide des tags suivants :
 
-Installez JDK 21, puis lancez `gradlew.bat build`. Le fichier JAR du mod est généré dans `build/libs`.
+- `create_simulated_damages:dislocatable`
+- `create_simulated_damages:impact_explosives`
+- `create_simulated_damages:explosion_ejectable`
 
-Pour lancer le client de développement, utilisez `gradlew.bat runClient`.
+## Prérequis
+
+Tous les éléments suivants sont requis côté client et côté serveur :
+
+- Minecraft **1.21.1**
+- NeoForge **21.1.247 ou supérieur**
+- Create **6.0.10 ou supérieur**
+- Create: Aeronautics **1.3.2 ou supérieur**
+- Sable **2.0.6 ou supérieur**
+
+## Compiler depuis les sources
+
+Installez **JDK 21**, puis lancez :
+
+```bat
+gradlew.bat build
+```
+
+Le fichier JAR du mod est créé dans `build/libs`. Pour lancer le client de développement, utilisez :
+
+```bat
+gradlew.bat runClient
+```
+
+[↑ Retour en haut](#create-simulated-damages)
