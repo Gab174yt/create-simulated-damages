@@ -1,7 +1,10 @@
 {
   "config.create_simulated_damages.impact_sensitivity": "Impact damage multiplier",
   "config.create_simulated_damages.impact_speed_threshold": "Impact speed threshold",
+  "config.create_simulated_damages.impact_max_radius": "Maximum high-impact damage radius (blocks)",
   "config.create_simulated_damages.explosion_speed_threshold": "Impact explosion speed threshold",
+  "config.create_simulated_damages.explosion_ejection_percent": "Explosion blocks ejected as sub-levels (%)",
+  "config.create_simulated_damages.max_explosion_sublevels": "Maximum sub-levels per explosion",
   "config.create_simulated_damages.fragile_block_resistance": "Fragile block resistance",
   "config.create_simulated_damages.impact_cooldown_ticks": "Impact cooldown (ticks)",
   "config.create_simulated_damages.friction_sensitivity": "Friction wear multiplier",

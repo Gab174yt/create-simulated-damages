@@ -23,10 +23,38 @@ repositories {
     }
 }
 
+configurations {
+    sableApi
+}
+
 dependencies {
     compileOnly 'maven.modrinth:T9PomCSv:2.0.6+mc1.21.1'
+    sableApi 'maven.modrinth:T9PomCSv:2.0.6+mc1.21.1'
     compileOnly 'org.spongepowered:mixin:0.8.7'
     annotationProcessor 'org.spongepowered:mixin:0.8.7:processor'
+}
+
+def sableCompanionClasses = layout.buildDirectory.dir('generated/sable-companion-classes')
+
+tasks.register('extractSableCompanionClasses') {
+    inputs.files(configurations.sableApi)
+    outputs.dir(sableCompanionClasses)
+    doLast {
+        def sableJar = configurations.sableApi.singleFile
+        def companionJar = zipTree(sableJar)
+                .matching { include 'META-INF/jarjar/sable-companion-common-1.21.1-*.jar' }
+                .singleFile
+        copy {
+            from zipTree(companionJar)
+            into sableCompanionClasses
+        }
+    }
+}
+
+sourceSets.main.compileClasspath += files(sableCompanionClasses)
+
+tasks.named('compileJava').configure {
+    dependsOn tasks.named('extractSableCompanionClasses')
 }
 
 neoForge {

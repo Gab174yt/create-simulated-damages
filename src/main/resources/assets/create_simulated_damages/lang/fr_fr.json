@@ -1,7 +1,10 @@
 {
   "config.create_simulated_damages.impact_sensitivity": "Multiplicateur des dégâts de choc",
   "config.create_simulated_damages.impact_speed_threshold": "Vitesse minimale d'impact",
+  "config.create_simulated_damages.impact_max_radius": "Rayon maximal des dégâts des gros impacts (blocs)",
   "config.create_simulated_damages.explosion_speed_threshold": "Vitesse minimale d'explosion au choc",
+  "config.create_simulated_damages.explosion_ejection_percent": "Blocs d'explosion éjectés en sous-niveaux (%)",
+  "config.create_simulated_damages.max_explosion_sublevels": "Nombre maximal de sous-niveaux par explosion",
   "config.create_simulated_damages.fragile_block_resistance": "Résistance des blocs fragiles",
   "config.create_simulated_damages.impact_cooldown_ticks": "Délai entre les chocs (ticks)",
   "config.create_simulated_damages.friction_sensitivity": "Multiplicateur d'usure par frottement",

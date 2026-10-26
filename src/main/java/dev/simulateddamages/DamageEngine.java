@@ -23,11 +23,11 @@ public final class DamageEngine {
             Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(SimulatedDamages.MOD_ID, "dislocatable"));
     public static final TagKey<Block> IMPACT_EXPLOSIVES = TagKey.create(
             Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(SimulatedDamages.MOD_ID, "impact_explosives"));
-    public static final TagKey<Block> EXPLOSION_EJECTABLE = TagKey.create(
-            Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(SimulatedDamages.MOD_ID, "explosion_ejectable"));
-
     private static final float MAX_DAMAGE_PROGRESS = 10.0f;
-    private static final double IMPACT_DAMAGE_SCALE = 0.2;
+    private static final double IMPACT_DAMAGE_SCALE = 0.06;
+    private static final double IMPACT_DAMAGE_EXPONENT = 2.5;
+    private static final double IMPACT_RADIUS_PER_SPEED = 3.0;
+    private static final double HIGH_SPEED_IMPACT_DAMAGE_MULTIPLIER = 0.5;
     private static final double FRICTION_DAMAGE_SCALE = 0.1;
     private static final String DAMAGE_DATA_NAME = "create_simulated_damages_v3";
     private static final Map<ServerLevel, Map<Long, Long>> LAST_IMPACT_TICKS = new WeakHashMap<>();
@@ -69,17 +69,17 @@ public final class DamageEngine {
         double speed = Math.abs(impactVelocity);
         double impactThreshold = DamageConfig.getImpactSpeedThreshold();
         double sensitivity = DamageConfig.getImpactSensitivity();
-        if (speed < impactThreshold || !registerImpact(level, position)) {
+        if (speed < impactThreshold) {
             return;
         }
-        double massScale = impactMassScale(level, position, otherPosition);
-        double resistance = blockResistance(level, position);
-        if (!Double.isFinite(resistance)) {
-            return;
+        double excessSpeed = speed - impactThreshold;
+        int radius = Math.min(DamageConfig.getImpactMaxRadius(),
+                (int) (excessSpeed / IMPACT_RADIUS_PER_SPEED));
+        double baseDamage = Math.pow(excessSpeed, IMPACT_DAMAGE_EXPONENT) * IMPACT_DAMAGE_SCALE * sensitivity;
+        if (radius > 0) {
+            baseDamage *= HIGH_SPEED_IMPACT_DAMAGE_MULTIPLIER;
         }
-        float damage = (float) (Math.pow(speed - impactThreshold, 2)
-                * IMPACT_DAMAGE_SCALE * sensitivity * massScale / resistance);
-        damageBlock(level, position, damage, impactVelocity);
+        applyImpactDamageInRadius(level, position, otherPosition, radius, baseDamage, impactVelocity);
     }
 
     public static void damageFriction(ServerLevel level, BlockPos position, double speed) {
@@ -165,6 +165,37 @@ public final class DamageEngine {
                 clearDamage(level, pos);
             } else {
                 level.destroyBlockProgress(breakerId(pos), pos, damageStage(progress));
+            }
+        }
+    }
+
+    private static void applyImpactDamageInRadius(ServerLevel level, BlockPos center, BlockPos otherPosition,
+                                                  int radius, double baseDamage, double impactVelocity) {
+        int squaredRadius = radius * radius;
+        for (int x = -radius; x <= radius; x++) {
+            for (int y = -radius; y <= radius; y++) {
+                for (int z = -radius; z <= radius; z++) {
+                    int squaredDistance = x * x + y * y + z * z;
+                    if (squaredDistance > squaredRadius) {
+                        continue;
+                    }
+
+                    BlockPos target = center.offset(x, y, z);
+                    if (!level.isInWorldBounds(target) || !registerImpact(level, target)) {
+                        continue;
+                    }
+
+                    double resistance = blockResistance(level, target);
+                    if (!Double.isFinite(resistance)) {
+                        continue;
+                    }
+
+                    double massScale = impactMassScale(level, target,
+                            x == 0 && y == 0 && z == 0 ? otherPosition : null);
+                    double distanceScale = 1.0 / (1.0 + Math.sqrt(squaredDistance));
+                    float damage = (float) (baseDamage * distanceScale * massScale / resistance);
+                    damageBlock(level, target, damage, impactVelocity);
+                }
             }
         }
     }
