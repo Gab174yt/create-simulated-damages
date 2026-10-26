@@ -6,9 +6,11 @@ public final class DamageConfig {
     public static final ModConfigSpec.DoubleValue IMPACT_SENSITIVITY;
     public static final ModConfigSpec.DoubleValue IMPACT_SPEED_THRESHOLD;
     public static final ModConfigSpec.DoubleValue EXPLOSION_SPEED_THRESHOLD;
+    public static final ModConfigSpec.DoubleValue FRAGILE_BLOCK_RESISTANCE;
     public static final ModConfigSpec.DoubleValue FRICTION_SENSITIVITY;
     public static final ModConfigSpec.DoubleValue FRICTION_SPEED_THRESHOLD;
     public static final ModConfigSpec.IntValue IMPACT_COOLDOWN_TICKS;
+    public static final ModConfigSpec.IntValue REPAIR_INTERVAL_SECONDS;
     public static final ModConfigSpec SPEC;
 
     static {
@@ -27,6 +29,10 @@ public final class DamageConfig {
                 .comment("Minimum collision speed in blocks per second for impact explosions.")
                 .translation("config.create_simulated_damages.explosion_speed_threshold")
                 .defineInRange("explosion_speed_threshold", 8.0, 0.1, 40.0);
+        FRAGILE_BLOCK_RESISTANCE = builder
+                .comment("Resistance multiplier for blocks in the impact_fragile block tag.")
+                .translation("config.create_simulated_damages.fragile_block_resistance")
+                .defineInRange("fragile_block_resistance", 0.15, 0.01, 1.0);
         IMPACT_COOLDOWN_TICKS = builder
                 .comment("Minimum ticks between impact damage events on the same block.")
                 .translation("config.create_simulated_damages.impact_cooldown_ticks")
@@ -42,6 +48,13 @@ public final class DamageConfig {
                 .comment("Minimum relative contact speed before friction causes wear.")
                 .translation("config.create_simulated_damages.friction_speed_threshold")
                 .defineInRange("friction_speed_threshold", 0.05, 0.01, 5.0);
+        builder.pop();
+
+        builder.push("repair");
+        REPAIR_INTERVAL_SECONDS = builder
+                .comment("Seconds required to repair one crack level. Set to 0 to disable repair.")
+                .translation("config.create_simulated_damages.repair_interval_seconds")
+                .defineInRange("repair_interval_seconds", 10, 0, 3600);
         builder.pop();
 
         SPEC = builder.build();
@@ -62,11 +75,19 @@ public final class DamageConfig {
         return EXPLOSION_SPEED_THRESHOLD.get();
     }
 
+    public static double getFragileBlockResistance() {
+        return FRAGILE_BLOCK_RESISTANCE.get();
+    }
+
     public static double getFrictionSensitivity() {
         return FRICTION_SENSITIVITY.get();
     }
 
     public static double getFrictionSpeedThreshold() {
         return FRICTION_SPEED_THRESHOLD.get();
+    }
+
+    public static int getRepairIntervalTicks() {
+        return REPAIR_INTERVAL_SECONDS.get() * 20;
     }
 }

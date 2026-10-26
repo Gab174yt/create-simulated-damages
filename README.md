@@ -29,17 +29,22 @@ Create: Simulated Damages adds progressive, persistent physical damage to blocks
 | **Disintegration** | Tagged blocks break free as falling debris. |
 | **Impact explosions** | Tagged explosive blocks detonate after an impact above 8 blocks/second. TNT is included by default. |
 | **Explosion debris** | Selected blocks are launched as falling blocks instead of being destroyed by an explosion. |
-| **Persistent damage** | Block damage is saved with the world. |
+| **Block resistance** | Each block resists damage according to its hardness; fragile blocks such as glass have a configurable resistance multiplier. |
+| **Gradual repair** | Damaged blocks recover one crack level every 10 seconds by default. |
+| **Persistent damage** | Block damage and repair progress are saved with the world. |
 
 Block behavior can be extended with data packs using these block tags:
 
 - `create_simulated_damages:dislocatable`
 - `create_simulated_damages:impact_explosives`
 - `create_simulated_damages:explosion_ejectable`
+- `create_simulated_damages:impact_fragile`
+
+Blocks in `impact_fragile` take more impact damage. Add other brittle blocks to this tag with a data pack.
 
 ## Configuration
 
-Open **Mods → Create: Simulated Damages → Config** to adjust impact damage, the impact and explosion speed thresholds, the impact cooldown, and friction wear and minimum speed. Block mass and Sable friction properties are factored into damage automatically; very slow contacts below the friction threshold do not wear blocks.
+Open **Mods → Create: Simulated Damages → Config** to adjust impact damage and thresholds, fragile block resistance, friction wear, and repair time. Damage is stored as ten crack levels; a block breaks at level ten and repairs by one level after each configured interval. Block hardness, mass, and Sable friction properties are accounted for.
 
 ## Requirements
 
@@ -98,17 +103,22 @@ Create: Simulated Damages ajoute des dégâts physiques progressifs et persistan
 | **Dislocation** | Les blocs marqués se détachent et tombent en débris. |
 | **Explosions au choc** | Les blocs explosifs marqués détonent après un impact dépassant 8 blocs/seconde. Le TNT est inclus par défaut. |
 | **Débris d'explosion** | Certains blocs sont projetés sous forme de blocs tombants au lieu d'être détruits par une explosion. |
-| **Dégâts persistants** | Les dégâts des blocs sont sauvegardés avec le monde. |
+| **Résistance des blocs** | Chaque bloc résiste selon sa dureté ; les blocs fragiles comme le verre ont un multiplicateur de résistance configurable. |
+| **Réparation progressive** | Par défaut, les blocs récupèrent un niveau de fissure toutes les 10 secondes. |
+| **Dégâts persistants** | Les dégâts et la réparation sont sauvegardés avec le monde. |
 
 Les comportements peuvent être étendus avec des packs de données à l'aide des tags suivants :
 
 - `create_simulated_damages:dislocatable`
 - `create_simulated_damages:impact_explosives`
 - `create_simulated_damages:explosion_ejectable`
+- `create_simulated_damages:impact_fragile`
+
+Les blocs dans `impact_fragile` reçoivent davantage de dégâts de choc. Ajoutez-y d'autres blocs cassants avec un pack de données.
 
 ## Configuration
 
-Ouvrez **Mods → Create: Simulated Damages → Config** pour régler les dégâts de choc, les vitesses minimales d'impact et d'explosion, le délai entre les chocs, ainsi que l'usure et la vitesse minimale de frottement. La masse et les propriétés de friction des blocs définies par Sable sont automatiquement prises en compte ; les contacts trop lents n'usent pas les blocs.
+Ouvrez **Mods → Create: Simulated Damages → Config** pour régler les dégâts et seuils de choc, la résistance des blocs fragiles, l'usure par frottement et le délai de réparation. Les dégâts sont enregistrés en dix niveaux de fissure ; le bloc casse au niveau dix et récupère un niveau après chaque intervalle configuré. La dureté, la masse et les propriétés de friction Sable sont prises en compte.
 
 ## Prérequis
 

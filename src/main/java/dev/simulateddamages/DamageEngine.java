@@ -17,6 +17,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 public final class DamageEngine {
+    public static final TagKey<Block> IMPACT_FRAGILE = TagKey.create(
+            Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(SimulatedDamages.MOD_ID, "impact_fragile"));
     public static final TagKey<Block> DISLOCATABLE_BLOCKS = TagKey.create(
             Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(SimulatedDamages.MOD_ID, "dislocatable"));
     public static final TagKey<Block> IMPACT_EXPLOSIVES = TagKey.create(
@@ -24,9 +26,10 @@ public final class DamageEngine {
     public static final TagKey<Block> EXPLOSION_EJECTABLE = TagKey.create(
             Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(SimulatedDamages.MOD_ID, "explosion_ejectable"));
 
-    private static final double IMPACT_DAMAGE_SCALE = 0.04;
-    private static final double FRICTION_DAMAGE_SCALE = 0.02;
-    private static final String DAMAGE_DATA_NAME = "create_simulated_damages_v2";
+    private static final float MAX_DAMAGE_PROGRESS = 10.0f;
+    private static final double IMPACT_DAMAGE_SCALE = 0.2;
+    private static final double FRICTION_DAMAGE_SCALE = 0.1;
+    private static final String DAMAGE_DATA_NAME = "create_simulated_damages_v3";
     private static final Map<ServerLevel, Map<Long, Long>> LAST_IMPACT_TICKS = new WeakHashMap<>();
     private static final Map<ServerLevel, ConcurrentLinkedQueue<Runnable>> DEFERRED_MUTATIONS = new WeakHashMap<>();
 
@@ -35,7 +38,7 @@ public final class DamageEngine {
 
     public static void damageBlock(ServerLevel level, BlockPos position, float amount, double impactSpeed) {
         BlockPos pos = position.immutable();
-        if (!level.isInWorldBounds(pos)) {
+        if (!level.isInWorldBounds(pos) || !Float.isFinite(amount) || amount <= 0) {
             return;
         }
 
@@ -50,12 +53,11 @@ public final class DamageEngine {
             return;
         }
 
-        float hardness = state.getDestroySpeed(level, pos);
-        if (hardness < 0) {
+        if (!Float.isFinite(state.getDestroySpeed(level, pos)) || state.getDestroySpeed(level, pos) < 0) {
             return;
         }
 
-        deferMutation(level, () -> applyDamage(level, pos, state, amount, hardness));
+        deferMutation(level, () -> applyDamage(level, pos, state, amount));
     }
 
     public static void damageEntityImpact(ServerLevel level, BlockPos position, double speed) {
@@ -71,8 +73,12 @@ public final class DamageEngine {
             return;
         }
         double massScale = impactMassScale(level, position, otherPosition);
+        double resistance = blockResistance(level, position);
+        if (!Double.isFinite(resistance)) {
+            return;
+        }
         float damage = (float) (Math.pow(speed - impactThreshold, 2)
-                * IMPACT_DAMAGE_SCALE * sensitivity * massScale);
+                * IMPACT_DAMAGE_SCALE * sensitivity * massScale / resistance);
         damageBlock(level, position, damage, impactVelocity);
     }
 
@@ -108,8 +114,12 @@ public final class DamageEngine {
         }
 
         double massScale = impactMassScale(level, pos, otherPosition);
+        double resistance = blockResistance(level, pos);
+        if (!Double.isFinite(resistance)) {
+            return;
+        }
         float damage = (float) ((speed - minimumSpeed) * FRICTION_DAMAGE_SCALE
-                * DamageConfig.getFrictionSensitivity() * friction * massScale);
+                * DamageConfig.getFrictionSensitivity() * friction * massScale / resistance);
         damageBlock(level, pos, damage, 0);
     }
 
@@ -134,6 +144,31 @@ public final class DamageEngine {
         }
     }
 
+    public static void repairDamagedBlocks(ServerLevel level) {
+        int repairIntervalTicks = DamageConfig.getRepairIntervalTicks();
+        if (repairIntervalTicks <= 0) {
+            return;
+        }
+
+        BlockDamageData data = level.getDataStorage().get(BlockDamageData.FACTORY, DAMAGE_DATA_NAME);
+        if (data == null) {
+            return;
+        }
+
+        for (long packedPosition : data.repair(level.getGameTime(), repairIntervalTicks)) {
+            BlockPos pos = BlockPos.of(packedPosition);
+            BlockState state = level.getBlockState(pos);
+            float progress = data.getProgress(pos);
+            if (progress <= 0) {
+                level.destroyBlockProgress(breakerId(pos), pos, -1);
+            } else if (!data.matches(pos, state)) {
+                clearDamage(level, pos);
+            } else {
+                level.destroyBlockProgress(breakerId(pos), pos, damageStage(progress));
+            }
+        }
+    }
+
     public static void clearDamage(ServerLevel level, BlockPos position) {
         BlockDamageData data = level.getDataStorage().get(BlockDamageData.FACTORY, DAMAGE_DATA_NAME);
         if (data != null && data.clear(position)) {
@@ -141,17 +176,18 @@ public final class DamageEngine {
         }
     }
 
-    private static void applyDamage(ServerLevel level, BlockPos pos, BlockState expectedState,
-                                    float amount, float hardness) {
+    private static void applyDamage(ServerLevel level, BlockPos pos, BlockState expectedState, float amount) {
         if (!level.getBlockState(pos).equals(expectedState) || level.getBlockEntity(pos) != null) {
             clearDamage(level, pos);
             return;
         }
 
-        float threshold = Math.max(1.0f, (hardness + 0.5f) * 2.0f);
+        if (!Float.isFinite(amount) || amount <= 0) {
+            return;
+        }
         BlockDamageData data = getData(level);
-        float totalDamage = data.add(pos, expectedState, amount);
-        if (totalDamage >= threshold) {
+        float totalProgress = data.add(pos, expectedState, amount, level.getGameTime());
+        if (totalProgress >= MAX_DAMAGE_PROGRESS) {
             data.clear(pos);
             level.destroyBlockProgress(breakerId(pos), pos, -1);
             if (expectedState.is(DISLOCATABLE_BLOCKS)) {
@@ -162,8 +198,7 @@ public final class DamageEngine {
             return;
         }
 
-        int stage = Math.min(9, (int) (totalDamage / threshold * 10));
-        level.destroyBlockProgress(breakerId(pos), pos, stage);
+        level.destroyBlockProgress(breakerId(pos), pos, damageStage(totalProgress));
     }
 
     private static void explodeBlock(ServerLevel level, BlockPos pos, BlockState expectedState, float speed) {
@@ -229,6 +264,31 @@ public final class DamageEngine {
 
         double mass = PhysicsBlockPropertyHelper.getMass(level, position, state);
         return Double.isFinite(mass) && mass > 0 ? mass : 1.0;
+    }
+
+    private static double blockResistance(ServerLevel level, BlockPos position) {
+        if (!level.isInWorldBounds(position)) {
+            return Double.POSITIVE_INFINITY;
+        }
+        BlockState state = level.getBlockState(position);
+        if (state.isAir()) {
+            return Double.POSITIVE_INFINITY;
+        }
+
+        float hardness = state.getDestroySpeed(level, position);
+        if (!Float.isFinite(hardness) || hardness < 0) {
+            return Double.POSITIVE_INFINITY;
+        }
+
+        double resistance = Math.max(0.5, hardness + 0.5);
+        if (state.is(IMPACT_FRAGILE)) {
+            resistance *= DamageConfig.getFragileBlockResistance();
+        }
+        return Math.max(0.05, resistance);
+    }
+
+    private static int damageStage(float progress) {
+        return Math.min(9, (int) progress);
     }
 
     private static int breakerId(BlockPos pos) {

@@ -59,6 +59,7 @@ public final class PhysicsEvents {
     public static void processDeferredMutations(LevelTickEvent.Post event) {
         if (event.getLevel() instanceof ServerLevel level) {
             DamageEngine.processDeferredMutations(level);
+            DamageEngine.repairDamagedBlocks(level);
         }
     }
 
